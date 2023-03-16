@@ -100,13 +100,10 @@ venv.bak/
 # mkdocs documentation
 /site
 
-# mypy
-.mypy_cache/
+# pytorch stuff
+*.pth
+*.onnx
+*.pb
 
-*.png
-*.pfm
-*.jpg
-*.jpeg
-*.pt
-
-MIDAS_ENV/
+trained_models/
+.fuse_hidden*

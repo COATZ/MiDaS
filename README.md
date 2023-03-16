@@ -1,159 +1,57 @@
-## Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-shot Cross-dataset Transfer
+# Citation
+This repositeory contains the depth model used in our article "OMNI-CONV: Generalization of the Omnidirectional Distortion-Aware Convolutions".
 
-This repository contains code to compute depth from a single image. It accompanies our [paper](https://arxiv.org/abs/1907.01341v3):
-
->Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-shot Cross-dataset Transfer  
-René Ranftl, Katrin Lasinger, David Hafner, Konrad Schindler, Vladlen Koltun
-
-
-and our [preprint](https://arxiv.org/abs/2103.13413):
-
-> Vision Transformers for Dense Prediction  
-> René Ranftl, Alexey Bochkovskiy, Vladlen Koltun
-
-
-MiDaS was trained on 10 datasets (ReDWeb, DIML, Movies, MegaDepth, WSVD, TartanAir, HRWSI, ApolloScape, BlendedMVS, IRS) with
-multi-objective optimization. 
-The original model that was trained on 5 datasets  (`MIX 5` in the paper) can be found [here](https://github.com/intel-isl/MiDaS/releases/tag/v2).
-
-
-### Changelog
-* [Sep 2021] Integrated to [Huggingface Spaces](https://huggingface.co/spaces) with [Gradio](https://github.com/gradio-app/gradio). See [Gradio Web Demo](https://huggingface.co/spaces/akhaliq/DPT-Large).
-* [Apr 2021] Released MiDaS v3.0:
-    - New models based on [Dense Prediction Transformers](https://arxiv.org/abs/2103.13413) are on average [21% more accurate](#Accuracy) than MiDaS v2.1
-    - Additional models can be found [here](https://github.com/intel-isl/DPT)
-* [Nov 2020] Released MiDaS v2.1:
-	- New model that was trained on 10 datasets and is on average about [10% more accurate](#Accuracy) than [MiDaS v2.0](https://github.com/intel-isl/MiDaS/releases/tag/v2)
-	- New light-weight model that achieves [real-time performance](https://github.com/intel-isl/MiDaS/tree/master/mobile) on mobile platforms.
-	- Sample applications for [iOS](https://github.com/intel-isl/MiDaS/tree/master/mobile/ios) and [Android](https://github.com/intel-isl/MiDaS/tree/master/mobile/android)
-	- [ROS package](https://github.com/intel-isl/MiDaS/tree/master/ros) for easy deployment on robots
-* [Jul 2020] Added TensorFlow and ONNX code. Added [online demo](http://35.202.76.57/).
-* [Dec 2019] Released new version of MiDaS - the new model is significantly more accurate and robust
-* [Jul 2019] Initial release of MiDaS ([Link](https://github.com/intel-isl/MiDaS/releases/tag/v1))
-
-### Setup 
-
-1) Pick one or more models and download corresponding weights to the `weights` folder:
-
-- For highest quality: [dpt_large](https://github.com/intel-isl/DPT/releases/download/1_0/dpt_large-midas-2f21e586.pt)
-- For moderately less quality, but better speed on CPU and slower GPUs: [dpt_hybrid](https://github.com/intel-isl/DPT/releases/download/1_0/dpt_hybrid-midas-501f0c75.pt)
-- For real-time applications on resource-constrained devices: [midas_v21_small](https://github.com/AlexeyAB/MiDaS/releases/download/midas_dpt/midas_v21_small-70d6b9c8.pt)
-- Legacy convolutional model: [midas_v21](https://github.com/AlexeyAB/MiDaS/releases/download/midas_dpt/midas_v21-f6b98070.pt)
-
-2) Set up dependencies: 
-
-    ```shell
-    conda install pytorch torchvision opencv
-    pip install timm
-    ```
-
-   The code was tested with Python 3.7, PyTorch 1.8.0, OpenCV 4.5.1, and timm 0.4.5.
-
-    
-### Usage
-
-1) Place one or more input images in the folder `input`.
-
-2) Run the model:
-
-    ```shell
-    python run.py --model_type dpt_large
-    python run.py --model_type dpt_hybrid 
-    python run.py --model_type midas_v21_small
-    python run.py --model_type midas_v21
-    ```
-
-3) The resulting inverse depth maps are written to the `output` folder.
-
-
-#### via Docker
-
-1) Make sure you have installed Docker and the
-   [NVIDIA Docker runtime](https://github.com/NVIDIA/nvidia-docker/wiki/Installation-\(Native-GPU-Support\)).
-
-2) Build the Docker image:
-
-    ```shell
-    docker build -t midas .
-    ```
-
-3) Run inference:
-
-    ```shell
-    docker run --rm --gpus all -v $PWD/input:/opt/MiDaS/input -v $PWD/output:/opt/MiDaS/output midas
-    ```
-
-   This command passes through all of your NVIDIA GPUs to the container, mounts the
-   `input` and `output` directories and then runs the inference.
-
-#### via PyTorch Hub
-
-The pretrained model is also available on [PyTorch Hub](https://pytorch.org/hub/intelisl_midas_v2/)
-
-#### via TensorFlow or ONNX
-
-See [README](https://github.com/intel-isl/MiDaS/tree/master/tf) in the `tf` subdirectory.
-
-Currently only supports MiDaS v2.1. DPT-based models to be added. 
-
-
-#### via Mobile (iOS / Android)
-
-See [README](https://github.com/intel-isl/MiDaS/tree/master/mobile) in the `mobile` subdirectory.
-
-#### via ROS1 (Robot Operating System)
-
-See [README](https://github.com/intel-isl/MiDaS/tree/master/ros) in the `ros` subdirectory.
-
-Currently only supports MiDaS v2.1. DPT-based models to be added. 
-
-
-### Accuracy
-
-Zero-shot error (the lower - the better) and speed (FPS):
-
-| Model |  DIW, WHDR | Eth3d, AbsRel | Sintel, AbsRel | Kitti, δ>1.25 | NyuDepthV2, δ>1.25 | TUM, δ>1.25 | Speed, FPS |
-|---|---|---|---|---|---|---|---|
-| **Small models:** | | | | | | | iPhone 11 |
-| MiDaS v2 small | **0.1248** | 0.1550 | **0.3300** | **21.81** | 15.73 | 17.00 | 0.6 |
-| MiDaS v2.1 small [URL]() | 0.1344 | **0.1344** | 0.3370 | 29.27 | **13.43** | **14.53** | 30 |
-| | | | | | | |
-| **Big models:** | | | | | | | GPU RTX 3090 |
-| MiDaS v2 large [URL](https://github.com/intel-isl/MiDaS/releases/download/v2/model-f46da743.pt) | 0.1246 | 0.1290 | 0.3270 | 23.90 | 9.55 | 14.29 | 51 |
-| MiDaS v2.1 large [URL](https://github.com/AlexeyAB/MiDaS/releases/download/midas_dpt/midas_v21-f6b98070.pt) | 0.1295 | 0.1155 | 0.3285 | 16.08 | 8.71 | 12.51 | 51 |
-| MiDaS v3.0 DPT-Hybrid [URL](https://github.com/intel-isl/DPT/releases/download/1_0/dpt_hybrid-midas-501f0c75.pt) | 0.1106 | 0.0934 | 0.2741 | 11.56 | 8.69 | 10.89 | 46 |
-| MiDaS v3.0 DPT-Large [URL](https://github.com/intel-isl/DPT/releases/download/1_0/dpt_large-midas-2f21e586.pt) | **0.1082** | **0.0888** | **0.2697** | **8.46** | **8.32** | **9.97** | 47 |
-
-
-
-### Citation
-
-Please cite our paper if you use this code or any of the models:
 ```
-@article{Ranftl2020,
-	author    = {Ren\'{e} Ranftl and Katrin Lasinger and David Hafner and Konrad Schindler and Vladlen Koltun},
-	title     = {Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-shot Cross-dataset Transfer},
-	journal   = {IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI)},
-	year      = {2020},
+@article{Artizzu2023,
+	title        = {{OMNI-CONV: Generalization of the Omnidirectional Distortion-Aware Convolutions}},
+	author       = {Artizzu, Charles-Olivier and Allibert, Guillaume and Demonceaux, Cédric},
+	year         = 2023,
+	journal      = {Journal of Imaging},
+	volume       = 9,
+	number       = 2,
+	article-number = 29,
+	url          = {https://www.mdpi.com/2313-433X/9/2/29},
+	pubmedid     = 36826948,
+	issn         = {2313-433X},
+	doi          = {10.3390/jimaging9020029}
 }
 ```
 
-If you use a DPT-based model, please also cite:
-
+# Installation
+Create the python3 env and install packages:
 ```
-@article{Ranftl2021,
-	author    = {Ren\'{e} Ranftl and Alexey Bochkovskiy and Vladlen Koltun},
-	title     = {Vision Transformers for Dense Prediction},
-	journal   = {ArXiv preprint},
-	year      = {2021},
-}
+python3 -m venv MIDAS_ENV;
+source MIDAS_ENV/bin/activate;
+pip3 install pytorch, opencv-python, timm, (airsim)
 ```
 
-### Acknowledgements
+# Spherical adaptation
+Distortion-aware convolutions for the ENCODER are located in "blocks.py" file from line 258 to 260 and are activated by commenting the appropriate line
+```
+    # effnet.conv_stem = DeformConv2d_sphe(3, 32, kernel_size=(3, 3), stride=(2, 2), bias=False)
+    # effnet.conv_stem = Conv2dSameExport_sphe(3, 32, kernel_size=(3, 3), stride=(2, 2), bias=False)
+    effnet.conv_stem = DeformConv2d_sphe_SameExport(3, 32, kernel_size=(3, 3), stride=(2, 2), bias=False)
+```
 
-Our work builds on and uses code from [timm](https://github.com/rwightman/pytorch-image-models). 
-We'd like to thank the author for making these libraries available.
+Distortion-aware convolutions for the DECODER are located in "midas_net_custom_sphe.py" file from line 83 to 93 and are activated by commenting the appropriate line:
+```
+    elif decoder == "sphe":
+        self.scratch.output_conv = nn.Sequential(
+            # nn.Conv2d(features, features//2, kernel_size=3, stride=1, padding=1, groups=self.groups),
+            DeformConv2d_sphe(features, features//2, kernel_size=3, stride=1, padding=1, groups=self.groups),
+            Interpolate(scale_factor=2, mode="bilinear"),
+            # nn.Conv2d(features//2, 32, kernel_size=3, stride=1, padding=1),
+            DeformConv2d_sphe(features//2, 32, kernel_size=3, stride=1, padding=1),
+            self.scratch.activation,
+            nn.Conv2d(32, 1, kernel_size=1, stride=1, padding=0),
+            nn.ReLU(True) if non_negative else nn.Identity(),
+            nn.Identity(),
+```
 
-### License 
+# Evaluation
+Run the evaluation of the model:
+```
+python3 test_pred_MIDAS.py
+python3 eval_with_png.py --pred_path OUTPUT/DEPTH_TEST_512x256/midas_v21_small_sphe_E1LL+LLres+decoder/ --gt_path OUTPUT/DEPTH_TEST_512x256/INPUT/
+```
 
-MIT License 
